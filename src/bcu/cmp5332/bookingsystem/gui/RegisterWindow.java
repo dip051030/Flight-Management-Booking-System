@@ -42,7 +42,7 @@ public class RegisterWindow extends JFrame {
      */
     private void initialize() {
         setTitle("Customer Registration");
-        setSize(450, 320);
+        setSize(480, 340);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
@@ -59,8 +59,9 @@ public class RegisterWindow extends JFrame {
      * @return the header panel
      */
     private JPanel buildHeader() {
-        JPanel header = new JPanel(new GridLayout(2, 1));
-        header.setBorder(BorderFactory.createEmptyBorder(15, 20, 10, 20));
+        JPanel header = new JPanel();
+        header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
+        header.setBorder(BorderFactory.createEmptyBorder(20, 24, 10, 24));
 
         JLabel title = new JLabel("Create Customer Account");
         title.setFont(new Font("Segoe UI", Font.BOLD, 20));
@@ -69,6 +70,7 @@ public class RegisterWindow extends JFrame {
         subtitle.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
         header.add(title);
+        header.add(Box.createVerticalStrut(6));
         header.add(subtitle);
 
         return header;
@@ -80,20 +82,22 @@ public class RegisterWindow extends JFrame {
      * @return the form panel
      */
     private JPanel buildForm() {
-        JPanel form = new JPanel(new GridLayout(4, 2, 12, 12));
-        form.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        JPanel form = new JPanel();
+        form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
+        form.setBorder(BorderFactory.createEmptyBorder(10, 24, 10, 24));
 
-        form.add(new JLabel("Full Name:"));
-        form.add(nameText);
+        nameText.setColumns(22);
+        phoneText.setColumns(22);
+        emailText.setColumns(22);
+        passwordText.setColumns(22);
 
-        form.add(new JLabel("Phone:"));
-        form.add(phoneText);
-
-        form.add(new JLabel("Email:"));
-        form.add(emailText);
-
-        form.add(new JLabel("Password:"));
-        form.add(passwordText);
+        form.add(createFieldRow("Full Name:", nameText));
+        form.add(Box.createVerticalStrut(10));
+        form.add(createFieldRow("Phone:", phoneText));
+        form.add(Box.createVerticalStrut(10));
+        form.add(createFieldRow("Email:", emailText));
+        form.add(Box.createVerticalStrut(10));
+        form.add(createFieldRow("Password:", passwordText));
 
         return form;
     }
@@ -105,7 +109,10 @@ public class RegisterWindow extends JFrame {
      */
     private JPanel buildFooter() {
         JPanel footer = new JPanel(new BorderLayout());
-        footer.setBorder(BorderFactory.createEmptyBorder(10, 20, 15, 20));
+        footer.setBorder(BorderFactory.createEmptyBorder(12, 24, 18, 24));
+
+        cancelButton.setPreferredSize(new Dimension(90, 32));
+        registerButton.setPreferredSize(new Dimension(150, 32));
 
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT));
         left.add(cancelButton);
@@ -120,6 +127,19 @@ public class RegisterWindow extends JFrame {
         cancelButton.addActionListener(e -> dispose());
 
         return footer;
+    }
+
+    private JPanel createFieldRow(String labelText, JComponent field) {
+        JPanel row = new JPanel(new BorderLayout(10, 0));
+        row.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel label = new JLabel(labelText);
+        label.setPreferredSize(new Dimension(90, 24));
+
+        row.add(label, BorderLayout.WEST);
+        row.add(field, BorderLayout.CENTER);
+
+        return row;
     }
 
     /**
