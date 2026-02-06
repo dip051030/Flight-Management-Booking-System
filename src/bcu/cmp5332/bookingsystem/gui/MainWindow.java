@@ -146,6 +146,147 @@ public class MainWindow extends JFrame implements ActionListener {
         }
     }
 
+
+    /**
+     * Prompts the user for a flight ID and displays its passengers.
+     *
+     * @throws FlightBookingSystemException if the flight does not exist
+     */
+    private void viewPassengersForFlight() throws FlightBookingSystemException {
+        String input = JOptionPane.showInputDialog(this, "Enter Flight ID:");
+        if (input == null || input.trim().isEmpty()) {
+            return;
+        }
+
+        try {
+            int flightId = Integer.parseInt(input.trim());
+            Flight flight = fbs.getFlightByID(flightId);
+            new ViewPassengersWindow(this, flight);
+        } catch (NumberFormatException e) {
+            throw new FlightBookingSystemException("Invalid Flight ID format.");
+        }
+    }
+
+
+    /**
+     * Prompts the administrator for a customer ID and displays their bookings.
+     *
+     * @throws FlightBookingSystemException if access is denied or customer not found
+     */
+    private void viewBookingsForCustomer() throws FlightBookingSystemException {
+        AuthService.requireAdmin();
+
+        String input = JOptionPane.showInputDialog(this, "Enter Customer ID:");
+        if (input == null || input.trim().isEmpty()) {
+            return;
+        }
+
+        try {
+            int customerId = Integer.parseInt(input.trim());
+            Customer customer = fbs.getCustomerByID(customerId);
+            new ViewCustomerBookingsWindow(this, customer);
+        } catch (NumberFormatException e) {
+            throw new FlightBookingSystemException("Invalid Customer ID format.");
+        }
+    }
+
+    /**
+     * Performs a soft delete of a flight (admin only).
+     *
+     * @throws FlightBookingSystemException if access is denied or flight not found
+     */
+    private void deleteFlight() throws FlightBookingSystemException {
+        AuthService.requireAdmin();
+
+        String input = JOptionPane.showInputDialog(this, "Enter Flight ID to delete:");
+        if (input == null || input.trim().isEmpty()) {
+            return;
+        }
+
+        try {
+            int flightId = Integer.parseInt(input.trim());
+            new DeleteFlight(flightId, new FlightDataManager()).execute(fbs);
+            displayFlights();
+        } catch (NumberFormatException e) {
+            throw new FlightBookingSystemException("Invalid Flight ID format.");
+        }
+    }
+
+
+
+    /**
+     * Performs a soft delete of a customer.
+     *
+     * <p>This action is restricted to administrators. The customer is marked
+     * as deleted but their historical data is preserved.</p>
+     *
+     * @throws FlightBookingSystemException if access is denied or input is invalid
+     */
+    private void deleteCustomer() throws FlightBookingSystemException {
+        AuthService.requireAdmin();
+
+        String input = JOptionPane.showInputDialog(this, "Enter Customer ID to delete:");
+        if (input == null || input.trim().isEmpty()) {
+            return;
+        }
+
+        try {
+            int customerId = Integer.parseInt(input.trim());
+            new DeleteCustomer(customerId, new CustomerDataManager()).execute(fbs);
+            displayCustomers();
+        } catch (NumberFormatException e) {
+            throw new FlightBookingSystemException("Invalid Customer ID format.");
+        }
+    }
+
+    /**
+     * Cancels an existing booking.
+     *
+     * <p>This operation is restricted to administrators. The booking is removed
+     * from the system and the associated seat is released.</p>
+     *
+     * @throws FlightBookingSystemException if access is denied or booking not found
+     */
+    private void cancelBooking() throws FlightBookingSystemException {
+        AuthService.requireAdmin();
+
+        String custInput = JOptionPane.showInputDialog(this, "Enter Customer ID:");
+        String flightInput = JOptionPane.showInputDialog(this, "Enter Flight ID:");
+
+        if (custInput == null || flightInput == null ||
+                custInput.trim().isEmpty() || flightInput.trim().isEmpty()) {
+            return;
+        }
+
+        try {
+            int customerId = Integer.parseInt(custInput.trim());
+            int flightId = Integer.parseInt(flightInput.trim());
+
+            Booking target = null;
+            for (Booking b : fbs.getBookings()) {
+                if (b.getCustomer().getId() == customerId &&
+                        b.getFlight().getId() == flightId) {
+                    target = b;
+                    break;
+                }
+            }
+
+            if (target == null) {
+                throw new FlightBookingSystemException("Booking not found.");
+            }
+
+            fbs.removeBooking(target);
+            bookingDataManager.storeData(fbs);
+            displayBookings();
+
+        } catch (NumberFormatException e) {
+            throw new FlightBookingSystemException("Invalid ID format.");
+        } catch (IOException e) {
+            throw new FlightBookingSystemException("Failed to save booking changes.");
+        }
+    }
+
+
     /**
      * Builds the top header panel.
      */
