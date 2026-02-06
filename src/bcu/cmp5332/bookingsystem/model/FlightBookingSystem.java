@@ -158,4 +158,24 @@ public class FlightBookingSystem {
         }
         throw new FlightBookingSystemException("Booking with ID " + bookingId + " not found.");
     }
+
+    /**
+     * Retrieves a customer by email address.
+     *
+     * <p>Email comparison is case-insensitive. Deleted customers are ignored.</p>
+     *
+     * @param email the email address to search for
+     * @return the matching Customer, or null if not found
+     */
+    public Customer getCustomerByEmail(String email) {
+        for (Customer customer : customers.values()) {
+            if (!customer.isDeleted()
+                    && customer.getEmail() != null
+                    && customer.getEmail().equalsIgnoreCase(email)) {
+                return customer;
+            }
+        }
+        return null;
+    }
+
 }

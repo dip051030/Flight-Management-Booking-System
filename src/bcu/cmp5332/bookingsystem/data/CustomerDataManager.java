@@ -95,7 +95,7 @@ public class CustomerDataManager implements DataManager {
                         customer.getName(),
                         customer.getPhone(),
                         customer.getEmail(),
-                        customer.getPassword(),
+                        customer.getPasswordHash(),
                         customer.isDeleted()
                 );
             }

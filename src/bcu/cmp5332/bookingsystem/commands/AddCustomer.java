@@ -66,10 +66,8 @@ public class AddCustomer implements Command {
 
         int maxId = 0;
         for (Customer c : fbs.getCustomers().values()) {
-            if (c.getId() > maxId) {
-                maxId = c.getId();
-            }
-            if (username.equalsIgnoreCase(c.getUsername())) {
+            if (c.getId() > maxId)
+            if (username.equalsIgnoreCase(c.getEmail())) {
                 throw new FlightBookingSystemException("Username already exists.");
             }
         }

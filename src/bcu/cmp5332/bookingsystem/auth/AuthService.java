@@ -1,5 +1,6 @@
 package bcu.cmp5332.bookingsystem.auth;
 
+import bcu.cmp5332.bookingsystem.main.FlightBookingSystemException;
 import bcu.cmp5332.bookingsystem.model.Customer;
 
 /**
@@ -13,7 +14,7 @@ import bcu.cmp5332.bookingsystem.model.Customer;
  *
  * <p>
  * Admin authentication uses fixed credentials.
- * Customer authentication uses email (username) and password.
+ * Customer authentication uses email and password.
  * </p>
  */
 public final class AuthService {
@@ -30,9 +31,6 @@ public final class AuthService {
     private static Role currentRole = null;
     private static Customer loggedInCustomer = null;
 
-    /**
-     * Prevents instantiation of the authentication service.
-     */
     private AuthService() {}
 
     /**
@@ -53,15 +51,23 @@ public final class AuthService {
     }
 
     /**
-     * Logs in a customer using their password.
+     * Authenticates a customer using a raw password.
      *
-     * @param customer the customer attempting to log in
-     * @param password the provided password
-     * @throws SecurityException if the password is incorrect
+     * @param customer the customer attempting login
+     * @param rawPassword the password entered by the user
+     * @throws FlightBookingSystemException if authentication fails
      */
-    public static void loginCustomer(Customer customer, String password) {
-        if (!customer.getPassword().equals(password)) {
-            throw new SecurityException("Invalid customer password");
+    public static void loginCustomer(Customer customer, String rawPassword)
+            throws FlightBookingSystemException {
+
+        if (customer.getPasswordHash() == null || customer.getPasswordHash().isEmpty()) {
+            throw new FlightBookingSystemException(
+                    "This account was created before authentication was added. Please re-register."
+            );
+        }
+
+        if (!PasswordUtil.verify(rawPassword, customer.getPasswordHash())) {
+            throw new FlightBookingSystemException("Invalid email or password.");
         }
 
         loggedIn = true;
@@ -69,14 +75,16 @@ public final class AuthService {
         loggedInCustomer = customer;
     }
 
+    /**
+     * Starts an authenticated session for a newly registered customer.
+     *
+     * @param customer the customer to authenticate
+     */
     public static void startCustomerSession(Customer customer) {
         loggedIn = true;
         currentRole = Role.CUSTOMER;
         loggedInCustomer = customer;
     }
-
-
-
 
     /**
      * Logs out the currently logged-in user.

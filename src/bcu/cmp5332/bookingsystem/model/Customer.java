@@ -6,7 +6,8 @@ import java.util.List;
 /**
  * Represents a customer in the Flight Booking System.
  *
- * Email is used as the login username.
+ * A customer may authenticate into the system and hold multiple bookings.
+ * Deleted customers are soft-deleted and preserved for history.
  */
 public class Customer {
 
@@ -14,17 +15,37 @@ public class Customer {
     private String name;
     private String phone;
     private String email;
-    private String password;
-
+    private String passwordHash;
     private final List<Booking> bookings = new ArrayList<>();
     private boolean deleted = false;
 
-    public Customer(int id, String name, String phone, String email, String password) {
+    /**
+     * Creates a customer without authentication credentials.
+     *
+     * @param id customer ID
+     * @param name customer name
+     * @param phone phone number
+     * @param email email address
+     */
+    public Customer(int id, String name, String phone, String email) {
         this.id = id;
         this.name = name;
         this.phone = phone;
         this.email = email;
-        this.password = password;
+    }
+
+    /**
+     * Creates a customer with authentication credentials.
+     *
+     * @param id customer ID
+     * @param name customer name
+     * @param phone phone number
+     * @param email email address (used as login)
+     * @param passwordHash hashed password
+     */
+    public Customer(int id, String name, String phone, String email, String passwordHash) {
+        this(id, name, phone, email);
+        this.passwordHash = passwordHash;
     }
 
     public int getId() {
@@ -39,41 +60,12 @@ public class Customer {
         return phone;
     }
 
-    /**
-     * Returns the customer's email.
-     *
-     * @return email address
-     */
     public String getEmail() {
         return email;
     }
 
-    /**
-     * Returns the username used for login.
-     *
-     * Email acts as the username.
-     *
-     * @return username (email)
-     */
-    public String getUsername() {
-        return email;
-    }
-
-    /**
-     * Returns the customer's password.
-     *
-     * @return password
-     */
-    public String getPassword() {
-        return password;
-    }
-
-    public List<Booking> getBookings() {
-        return bookings;
-    }
-
-    public void addBooking(Booking booking) {
-        bookings.add(booking);
+    public String getPasswordHash() {
+        return passwordHash;
     }
 
     public boolean isDeleted() {
@@ -84,22 +76,31 @@ public class Customer {
         this.deleted = deleted;
     }
 
+    public List<Booking> getBookings() {
+        return bookings;
+    }
+
+    public void addBooking(Booking booking) {
+        bookings.add(booking);
+    }
+
     /**
-     * Returns all active bookings for this customer.
-     *
-     * A booking is considered active if the associated flight
-     * has not been deleted.
+     * Returns only bookings whose flights are still active.
      *
      * @return list of active bookings
      */
     public List<Booking> getActiveBookings() {
         List<Booking> active = new ArrayList<>();
-        for (Booking booking : bookings) {
-            if (!booking.getFlight().isDeleted()) {
-                active.add(booking);
+        for (Booking b : bookings) {
+            if (!b.getFlight().isDeleted()) {
+                active.add(b);
             }
         }
         return active;
     }
 
+    @Override
+    public String toString() {
+        return "Customer #" + id + " - " + name;
+    }
 }

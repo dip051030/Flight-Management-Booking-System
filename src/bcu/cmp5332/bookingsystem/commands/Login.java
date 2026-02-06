@@ -43,24 +43,17 @@ public class Login implements Command {
      * @throws FlightBookingSystemException if authentication fails
      */
     @Override
-    public void execute(FlightBookingSystem fbs) throws FlightBookingSystemException {
+    public void execute(FlightBookingSystem fbs)
+            throws FlightBookingSystemException {
 
-        // ---- ADMIN LOGIN ----
-        if ("admin".equals(username)) {
-            AuthService.loginAdmin(username, password);
-            System.out.println("Admin logged in successfully.");
+        Customer customer = fbs.getCustomerByEmail(username);
+
+        if (customer != null) {
+            AuthService.loginCustomer(customer, password);
             return;
         }
 
-        // ---- CUSTOMER LOGIN ----
-        for (Customer customer : fbs.getCustomers().values()) {
-            if (username.equalsIgnoreCase(customer.getUsername())) {
-                AuthService.loginCustomer(customer, password);
-                System.out.println("Customer logged in successfully.");
-                return;
-            }
-        }
-
-        throw new FlightBookingSystemException("Invalid username or password.");
+        AuthService.loginAdmin(username, password);
     }
+
 }

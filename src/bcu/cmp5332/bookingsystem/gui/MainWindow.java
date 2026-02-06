@@ -355,6 +355,7 @@ public class MainWindow extends JFrame implements ActionListener {
             custAdd.setEnabled(false);
             custDelete.setEnabled(false);
             bookingsEdit.setEnabled(false);
+            bookingsIssue.setEnabled(false);
             bookingsCancel.setEnabled(false);
         }
     }
