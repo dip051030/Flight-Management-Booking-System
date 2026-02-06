@@ -40,6 +40,9 @@ public class MainWindow extends JFrame implements ActionListener {
     private BookingDataManager bookingDataManager;
     private JTable currentTable;
 
+    private JPanel centerPanel;
+    private JLabel statusLabel;
+
     /**
      * Constructs the main window using a default {@link BookingDataManager}.
      *
@@ -67,10 +70,24 @@ public class MainWindow extends JFrame implements ActionListener {
      */
     private void initialize() {
         setTitle("Flight Booking System");
-        setSize(900, 600);
+        setSize(1000, 650);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setLayout(new BorderLayout());
 
+        buildMenuBar();
+        buildHeader();
+        buildCenterPanel();
+        buildStatusBar();
+
+        applyRoleRestrictions();
+        setVisible(true);
+    }
+
+    /**
+     * Builds the application menu bar.
+     */
+    private void buildMenuBar() {
         menuBar = new JMenuBar();
         setJMenuBar(menuBar);
 
@@ -85,8 +102,8 @@ public class MainWindow extends JFrame implements ActionListener {
         menuBar.add(customersMenu);
 
         adminExit = new JMenuItem("Exit");
-        adminMenu.add(adminExit);
         adminExit.addActionListener(this);
+        adminMenu.add(adminExit);
 
         flightsView = new JMenuItem("View All");
         flightsAdd = new JMenuItem("Add");
@@ -99,11 +116,6 @@ public class MainWindow extends JFrame implements ActionListener {
         flightsMenu.add(flightsViewPassengers);
         flightsMenu.add(flightsDelete);
 
-        flightsView.addActionListener(this);
-        flightsAdd.addActionListener(this);
-        flightsViewPassengers.addActionListener(this);
-        flightsDelete.addActionListener(this);
-
         bookingsView = new JMenuItem("View");
         bookingsIssue = new JMenuItem("Issue");
         bookingsCancel = new JMenuItem("Cancel");
@@ -113,11 +125,6 @@ public class MainWindow extends JFrame implements ActionListener {
         bookingsMenu.add(bookingsIssue);
         bookingsMenu.add(bookingsCancel);
         bookingsMenu.add(bookingsEdit);
-
-        bookingsView.addActionListener(this);
-        bookingsIssue.addActionListener(this);
-        bookingsCancel.addActionListener(this);
-        bookingsEdit.addActionListener(this);
 
         custView = new JMenuItem("View All");
         custAdd = new JMenuItem("Add");
@@ -130,22 +137,69 @@ public class MainWindow extends JFrame implements ActionListener {
         customersMenu.add(custViewBookings);
         customersMenu.add(custDelete);
 
-        custView.addActionListener(this);
-        custAdd.addActionListener(this);
-        custViewBookings.addActionListener(this);
-        custDelete.addActionListener(this);
+        for (JMenuItem item : new JMenuItem[]{
+                flightsView, flightsAdd, flightsViewPassengers, flightsDelete,
+                bookingsView, bookingsIssue, bookingsCancel, bookingsEdit,
+                custView, custAdd, custViewBookings, custDelete
+        }) {
+            item.addActionListener(this);
+        }
+    }
 
-        JLabel welcome = new JLabel(
-                "Welcome to Flight Booking System - Double-click rows for details",
+    /**
+     * Builds the top header panel.
+     */
+    private void buildHeader() {
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16));
+
+        JLabel title = new JLabel("Flight Booking System");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 22));
+
+        JLabel role = new JLabel(
+                AuthService.isAdmin() ? "Role: Admin" : "Role: Customer"
+        );
+        role.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+
+        header.add(title, BorderLayout.WEST);
+        header.add(role, BorderLayout.EAST);
+
+        add(header, BorderLayout.NORTH);
+    }
+
+    /**
+     * Builds the main content panel.
+     */
+    private void buildCenterPanel() {
+        centerPanel = new JPanel(new BorderLayout());
+        centerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JLabel placeholder = new JLabel(
+                "Select an option from the menu to begin",
                 JLabel.CENTER
         );
+        placeholder.setFont(new Font("Segoe UI", Font.ITALIC, 14));
 
-        getContentPane().setLayout(new BorderLayout());
-        getContentPane().add(welcome, BorderLayout.CENTER);
+        centerPanel.add(placeholder, BorderLayout.CENTER);
+        add(centerPanel, BorderLayout.CENTER);
+    }
 
-        applyRoleRestrictions();
+    /**
+     * Builds the status bar.
+     */
+    private void buildStatusBar() {
+        JPanel statusBar = new JPanel(new BorderLayout());
+        statusBar.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
-        setVisible(true);
+        statusLabel = new JLabel(
+                AuthService.isAdmin()
+                        ? "Logged in as Admin"
+                        : "Logged in as Customer"
+        );
+        statusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+
+        statusBar.add(statusLabel, BorderLayout.WEST);
+        add(statusBar, BorderLayout.SOUTH);
     }
 
     /**
@@ -231,7 +285,7 @@ public class MainWindow extends JFrame implements ActionListener {
             };
         }
 
-        showTable(data, cols, "flights");
+        showTable(data, cols);
     }
 
     /**
@@ -251,7 +305,7 @@ public class MainWindow extends JFrame implements ActionListener {
             };
         }
 
-        showTable(data, cols, "customers");
+        showTable(data, cols);
     }
 
     /**
@@ -275,121 +329,21 @@ public class MainWindow extends JFrame implements ActionListener {
             };
         }
 
-        showTable(data, cols, "bookings");
+        showTable(data, cols);
     }
 
     /**
-     * Renders a table and attaches double-click handlers.
+     * Renders a table in the center panel.
      *
      * @param data table data
      * @param cols column headers
-     * @param type table type identifier
      */
-    private void showTable(Object[][] data, String[] cols, String type) {
-        getContentPane().removeAll();
+    private void showTable(Object[][] data, String[] cols) {
+        centerPanel.removeAll();
         currentTable = new JTable(data, cols);
-
-        currentTable.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) {
-                    handleDoubleClick(type, currentTable.getSelectedRow());
-                }
-            }
-        });
-
-        getContentPane().add(new JScrollPane(currentTable), BorderLayout.CENTER);
-        revalidate();
-        repaint();
-    }
-
-    /**
-     * Handles double-click actions on table rows.
-     *
-     * @param type the table type
-     * @param row the selected row
-     */
-    private void handleDoubleClick(String type, int row) {
-        try {
-            if ("customers".equals(type) && AuthService.isCustomer()) {
-                throw new FlightBookingSystemException("Access denied.");
-            }
-
-            if ("flights".equals(type)) {
-                int id = (int) currentTable.getValueAt(row, 0);
-                new ViewPassengersWindow(this, fbs.getFlightByID(id));
-            }
-
-            if ("customers".equals(type)) {
-                int id = (int) currentTable.getValueAt(row, 0);
-                new ViewCustomerBookingsWindow(this, fbs.getCustomerByID(id));
-            }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, e.getMessage());
-        }
-    }
-
-    /**
-     * Prompts for a flight ID and displays its passengers.
-     */
-    private void viewPassengersForFlight() throws Exception {
-        int id = Integer.parseInt(JOptionPane.showInputDialog(this, "Flight ID:"));
-        new ViewPassengersWindow(this, fbs.getFlightByID(id));
-    }
-
-    /**
-     * Prompts for a customer ID and displays their bookings (admin only).
-     */
-    private void viewBookingsForCustomer() throws Exception {
-        AuthService.requireAdmin();
-        int id = Integer.parseInt(JOptionPane.showInputDialog(this, "Customer ID:"));
-        new ViewCustomerBookingsWindow(this, fbs.getCustomerByID(id));
-    }
-
-    /**
-     * Deletes a flight using soft delete (admin only).
-     */
-    private void deleteFlight() throws Exception {
-        AuthService.requireAdmin();
-        int id = Integer.parseInt(JOptionPane.showInputDialog(this, "Flight ID:"));
-        new DeleteFlight(id, new FlightDataManager()).execute(fbs);
-        displayFlights();
-    }
-
-    /**
-     * Deletes a customer using soft delete (admin only).
-     */
-    private void deleteCustomer() throws Exception {
-        AuthService.requireAdmin();
-        int id = Integer.parseInt(JOptionPane.showInputDialog(this, "Customer ID:"));
-        new DeleteCustomer(id, new CustomerDataManager()).execute(fbs);
-        displayCustomers();
-    }
-
-    /**
-     * Cancels an existing booking (admin only).
-     */
-    private void cancelBooking() throws Exception {
-        AuthService.requireAdmin();
-
-        int custId = Integer.parseInt(JOptionPane.showInputDialog(this, "Customer ID:"));
-        int flightId = Integer.parseInt(JOptionPane.showInputDialog(this, "Flight ID:"));
-
-        Booking target = null;
-        for (Booking b : fbs.getBookings()) {
-            if (b.getCustomer().getId() == custId && b.getFlight().getId() == flightId) {
-                target = b;
-                break;
-            }
-        }
-
-        if (target == null) {
-            throw new FlightBookingSystemException("Booking not found.");
-        }
-
-        fbs.removeBooking(target);
-        bookingDataManager.storeData(fbs);
-        displayBookings();
+        centerPanel.add(new JScrollPane(currentTable), BorderLayout.CENTER);
+        centerPanel.revalidate();
+        centerPanel.repaint();
     }
 
     /**
@@ -400,5 +354,4 @@ public class MainWindow extends JFrame implements ActionListener {
     public FlightBookingSystem getFlightBookingSystem() {
         return fbs;
     }
-
 }

@@ -2,12 +2,20 @@ package bcu.cmp5332.bookingsystem.gui;
 
 import bcu.cmp5332.bookingsystem.commands.Command;
 import bcu.cmp5332.bookingsystem.commands.Login;
-import bcu.cmp5332.bookingsystem.main.FlightBookingSystemException;
 import bcu.cmp5332.bookingsystem.model.FlightBookingSystem;
 
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * Login window for the Flight Booking System.
+ *
+ * <p>This window allows both administrators and customers to authenticate
+ * using their credentials. Successful authentication redirects the user
+ * to the main application window.</p>
+ *
+ * <p>Authentication logic is delegated to the {@link Login} command.</p>
+ */
 public class LoginWindow extends JFrame {
 
     private final FlightBookingSystem fbs;
@@ -19,39 +27,103 @@ public class LoginWindow extends JFrame {
     private JButton registerButton = new JButton("Register");
     private JButton exitButton = new JButton("Exit");
 
+    /**
+     * Constructs the login window.
+     *
+     * @param fbs the flight booking system instance
+     */
     public LoginWindow(FlightBookingSystem fbs) {
         this.fbs = fbs;
         initialize();
     }
 
+    /**
+     * Initializes the login window layout and components.
+     */
     private void initialize() {
-        setTitle("Login - Flight Booking System");
-        setSize(360, 200);
+        setTitle("Flight Booking System");
+        setSize(420, 280);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
 
-        JPanel panel = new JPanel(new GridLayout(4, 2, 10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        add(buildHeader(), BorderLayout.NORTH);
+        add(buildForm(), BorderLayout.CENTER);
+        add(buildFooter(), BorderLayout.SOUTH);
 
-        panel.add(new JLabel("Username:"));
-        panel.add(usernameText);
+        setVisible(true);
+    }
 
-        panel.add(new JLabel("Password:"));
-        panel.add(passwordText);
+    /**
+     * Builds the header panel.
+     *
+     * @return the header panel
+     */
+    private JPanel buildHeader() {
+        JPanel header = new JPanel(new GridLayout(2, 1));
+        header.setBorder(BorderFactory.createEmptyBorder(15, 20, 10, 20));
 
-        panel.add(loginButton);
-        panel.add(registerButton);
+        JLabel title = new JLabel("Flight Booking System");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 22));
 
-        panel.add(exitButton);
+        JLabel subtitle = new JLabel("Please log in to continue");
+        subtitle.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+
+        header.add(title);
+        header.add(subtitle);
+
+        return header;
+    }
+
+    /**
+     * Builds the login form panel.
+     *
+     * @return the form panel
+     */
+    private JPanel buildForm() {
+        JPanel form = new JPanel(new GridLayout(2, 2, 12, 12));
+        form.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+
+        JLabel userLabel = new JLabel("Username:");
+        JLabel passLabel = new JLabel("Password:");
+
+        form.add(userLabel);
+        form.add(usernameText);
+        form.add(passLabel);
+        form.add(passwordText);
+
+        return form;
+    }
+
+    /**
+     * Builds the footer panel with action buttons.
+     *
+     * @return the footer panel
+     */
+    private JPanel buildFooter() {
+        JPanel footer = new JPanel(new BorderLayout());
+        footer.setBorder(BorderFactory.createEmptyBorder(10, 20, 15, 20));
+
+        JPanel leftButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        leftButtons.add(registerButton);
+
+        JPanel rightButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        rightButtons.add(loginButton);
+        rightButtons.add(exitButton);
+
+        footer.add(leftButtons, BorderLayout.WEST);
+        footer.add(rightButtons, BorderLayout.EAST);
 
         loginButton.addActionListener(e -> login());
         registerButton.addActionListener(e -> new RegisterWindow(fbs));
         exitButton.addActionListener(e -> System.exit(0));
 
-        add(panel);
-        setVisible(true);
+        return footer;
     }
 
+    /**
+     * Executes the login command using the entered credentials.
+     */
     private void login() {
         try {
             String username = usernameText.getText().trim();
